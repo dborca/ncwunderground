@@ -283,29 +283,36 @@ static int ddLogLevel = LOG_LEVEL_OFF;
 // Returns: current wind speed, including mph
 - (NSString *)currentWindStringOfType:(int)type {
     NSString *typeString;
-    NSString *speedString;
+    NSObject *speed;
     NSDictionary *curObs = (NSDictionary *)[self.saveData objectForKey:@"current_observation"];
     switch (type) {
         case AMMWindTypeM:
             typeString = [self.ammNCWundergroundWeeAppBundle localizedStringForKey:@"MPH"
                                                                              value:@"MPH"
                                                                              table:nil];
-            speedString = [[curObs objectForKey:@"wind_mph"] stringValue];
+            speed = [curObs objectForKey:@"wind_mph"];
             break;
         case AMMWindTypeK:
             typeString = [self.ammNCWundergroundWeeAppBundle localizedStringForKey:@"KPH"
                                                                              value:@"KPH"
                                                                              table:nil];
-            speedString = [[curObs objectForKey:@"wind_kph"] stringValue];
+            speed = [curObs objectForKey:@"wind_kph"];
             break;
         case AMMWindTypeKt:
             typeString = [self.ammNCWundergroundWeeAppBundle localizedStringForKey:@"kt"
                                                                              value:@"kt"
                                                                              table:nil];
-            speedString = [NSString stringWithFormat:@"%.1f",([[curObs objectForKey:@"wind_kph"] floatValue] * 0.539957)];
+            speed = [curObs objectForKey:@"wind_kph"];
+            if(![speed isKindOfClass:[NSNumber class]]) {
+                /* assume it's NSString */
+                NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
+                [f setNumberStyle:NSNumberFormatterDecimalStyle];
+                speed = [f numberFromString:(NSString *)speed];
+            }
+            speed = [NSString stringWithFormat:@"%.1f",([(NSNumber *)speed floatValue] * 0.539957)];
             break;
     }
-    return [NSString stringWithFormat:@"%@ %@",speedString,typeString];
+    return [NSString stringWithFormat:@"%@ %@",speed,typeString];
 }
 
 // Returns: current location (city, state)
